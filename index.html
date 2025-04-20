@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- A-Frame + AR.js -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.3.0/aframe/build/aframe-ar.min.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+
+     .menu {
+  position: absolute;
+  top: 50%;
+  left: 50px;  /* Changed from 5px to 20px to move right */
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  border-radius: 8px;
+  z-index: 999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+      .menu img {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        border: 2px solid white;
+        border-radius: 5px;
+      }
+
+      .label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: "Georgia", serif;
+        font-size: 22px;
+        color: gold;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 8px 16px;
+        border-radius: 8px;
+        z-index: 999;
+        display: none;
+        max-width: 90%;
+        text-align: center;
+        line-height: 1.3;
+        margin-top: -40px;
+      }
+
+      /* Landscape suggestion */
+      .landscape-hint {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        display: none;
+        z-index: 1000;
+        text-align: center;
+        max-width: 80%;
+      }
+
+      /* Long press indicator */
+      .long-press-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .long-press-progress {
+        width: 90%;
+        height: 90%;
+        border-radius: 50%;
+        border: 4px solid transparent;
+        border-top-color: orange;
+        animation: none;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .play-pause-button {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.7);
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+        padding: 0;
+      }
+
+      .play-pause-button img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      /* Help Button */
+      .help-button {
+        position: absolute;
+        top: 45%;
+        left: 56%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+      }
+
+      /* Instructions Panel */
+      .instructions-panel {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 1001;
+        display: none;
+        width: 280px;
+        max-width: 80%;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        border: 1px solid gold;
+      }
+
+      .instructions-panel h3 {
+        margin-top: 0;
+        color: gold;
+        text-align: center;
+        font-size: 20px;
+      }
+
+      .instructions-panel p {
+        margin: 10px 0;
+        line-height: 1.4;
+        font-size: 16px;
+      }
+
+      .instructions-panel p strong {
+        color: gold;
+      }
+
+      .close-instructions {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      a-scene {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+      }
+
+      @media (max-height: 600px) {
+  .menu {
+    left: 60px;  /* Changed from 5px to 15px for small screens */
+    padding: 5px;
+  }
+        
+        .menu img {
+          width: 50px;
+          height: 50px;
+          margin-bottom: 8px;
+        }
+        
+        .label {
+          font-size: 18px;
+          padding: 6px 12px;
+          margin-top: 125px;
+        }
+        
+        .play-pause-button {
+          width: 50px;
+          height: 50px;
+          top: 33%;
+          left: 88%;
+        }
+        
+        .help-button {
+          width: 50px;
+          height: 50px;
+          font-size: 22px;
+          top: 45%;
+          left: 88%;
+        }
+        
+        .instructions-panel {
+          width: 250px;
+          padding: 15px;
+        }
+        
+        .instructions-panel h3 {
+          font-size: 18px;
+        }
+        
+        .instructions-panel p {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="landscape-hint">
+      For best experience, rotate your device to landscape mode
+    </div>
+
+    <div class="long-press-indicator">
+      <div class="long-press-progress"></div>
+    </div>
+
+    <div id="menu" class="menu">
+      <img
+        src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Screenshot%202025-04-19%20233651.png?v=1745091961408"
+        onclick="showDino('dino1')"
+      />
+      <img
+        src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(10).png?v=1745091924373"
+        onclick="showDino('dino2')"
+      />
+      <img
+        src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Screenshot%202025-04-19%20234247.png?v=1745091948287"
+        onclick="showDino('dino3')"
+      />
+      <img
+        src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Screenshot%202025-04-19%20233937.png?v=1745091975781"
+        onclick="showDino('dino4')"
+      />
+    </div>
+
+    <div id="label" class="label">Select a Dinosaur</div>
+    <button id="playPauseBtn" class="play-pause-button" onclick="toggleAudio()">
+      <img id="playPauseIcon" src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(12).png?v=1745175785547" alt="Play">
+    </button>
+    
+    <!-- Help Button -->
+    <button id="helpBtn" class="help-button" onclick="showInstructions()">?</button>
+    
+    <!-- Instructions Panel -->
+    <div id="instructionsPanel" class="instructions-panel">
+      <button class="close-instructions" onclick="hideInstructions()">×</button>
+      <h3>How to Use</h3>
+      <p><strong>1. Select a dinosaur</strong> from the menu</p>
+      <p><strong>2. Drag</strong> to rotate the model</p>
+      <p><strong>3. Double-tap</strong> to zoom in/out</p>
+      <p><strong>4. Long-press</strong> to view skeleton</p>
+      <p><strong>5. Play button</strong> for dinosaur info</p>
+      <p>For best experience, use in landscape mode</p>
+    </div>
+
+    <!-- A-Frame Scene with Lighting -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; precision: medium;"
+      arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+    >
+      <!-- Lighting System -->
+      <a-entity light="type: ambient; color: #FFF; intensity: 0.8"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 1.0" position="1 1 0.5"></a-entity>
+      <a-entity light="type: hemisphere; color: #FFF; groundColor: #AAA; intensity: 0.6"></a-entity>
+
+      <a-assets timeout="30000">
+        <a-asset-item
+          id="islandGround"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Volcano2.glb?v=1745174950227"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="dino1Model"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/patheloe2.glb?v=1745090946581"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino2Model"
+          src="https://cdn.glitch.me/f624326b-0c0e-4174-9c05-857684255a9d/dino2Fglb.glb?v=1745141346284"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino3Model"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/dino3FFglb.glb?v=1745141365528"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino4Model"
+          src="https://cdn.glitch.me/f624326b-0c0e-4174-9c05-857684255a9d/Olorotitan.glb?v=1745091668501"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="dino1Skeleton"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/dino12SKLFglb.glb?v=1745141394805"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino2Skeleton"
+          src="https://cdn.glitch.me/f624326b-0c0e-4174-9c05-857684255a9d/dino2SKLFglb.glb?v=1745141356802"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino3Skeleton"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/dino3SKLFglb.glb?v=1745141371499"
+        ></a-asset-item>
+        <a-asset-item
+          id="dino4Skeleton"
+          src="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/dino12SKLFglb.glb?v=1745141394805"
+        ></a-asset-item>
+      </a-assets>
+
+      <a-marker
+        id="marker"
+        type="pattern"
+        preset="custom"
+        url="https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/pattern-image_2025-04-20_122902597.patt?v=1745137776158"
+        smooth="true"
+        smoothCount="10"
+        smoothTolerance="0.01"
+        smoothThreshold="5"
+      >
+        <a-entity
+          id="ground"
+          gltf-model="#islandGround"
+          position="0 -0.1 -0.5"
+          scale="0.18 0.18 0.18"
+          rotation="0 0 0"
+        >
+        </a-entity>
+
+        <a-entity
+          id="dinoContainer"
+          position="0 0.1 -0.5"
+          scale="1 1 1"
+          rotation="0 0 0"
+        >
+        </a-entity>
+      </a-marker>
+
+      <a-entity camera="fov: 60; near: 0.1; far: 10000"></a-entity>
+    </a-scene>
+
+    <script>
+      const dinoContainer = document.getElementById("dinoContainer");
+      const label = document.getElementById("label");
+      const menu = document.getElementById("menu");
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const playPauseIcon = document.getElementById("playPauseIcon");
+      const helpBtn = document.getElementById("helpBtn");
+      const instructionsPanel = document.getElementById("instructionsPanel");
+      const landscapeHint = document.querySelector(".landscape-hint");
+      const longPressIndicator = document.querySelector(".long-press-indicator");
+      const longPressProgress = document.querySelector(".long-press-progress");
+
+      let currentModel = null;
+      let isDragging = false;
+      let previousX = 0;
+      let previousTouchX = 0;
+      let longPressTimer = null;
+      let isSkeletonMode = false;
+      let currentDinoId = null;
+      let audio = null;
+      let isPlaying = false;
+      
+      const dinoAudioUrls = {
+        dino1: "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/ElevenLabs_2025-04-20T18_56_51_Mark%20-%20Natural%20Conversations_pvc_sp91_s50_sb75_se6_b_m2.mp3?v=1745175792321",
+        dino2: "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/ElevenLabs_2025-04-20T18_57_19_Mark%20-%20Natural%20Conversations_pvc_sp91_s50_sb75_se6_b_m2.mp3?v=1745175787958",
+        dino3: "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/ElevenLabs_2025-04-20T18_55_26_Mark%20-%20Natural%20Conversations_pvc_sp91_s50_sb75_se0_b_m2.mp3?v=1745175802118",
+        dino4: "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/ElevenLabs_2025-04-20T18_56_21_Mark%20-%20Natural%20Conversations_pvc_sp91_s50_sb75_se6_b_m2.mp3?v=1745175797236"
+      };
+
+      function checkOrientation() {
+        if (window.innerHeight > window.innerWidth) {
+          landscapeHint.style.display = "block";
+        } else {
+          landscapeHint.style.display = "none";
+        }
+      }
+
+      function showInstructions() {
+        instructionsPanel.style.display = "block";
+      }
+
+      function hideInstructions() {
+        instructionsPanel.style.display = "none";
+      }
+
+      checkOrientation();
+
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", checkOrientation);
+
+      document.querySelector("#marker").addEventListener("markerFound", () => {
+        menu.style.display = "flex";
+        label.style.display = "block";
+        playPauseBtn.style.display = "block";
+        helpBtn.style.display = "block";
+        landscapeHint.style.display = "none";
+      });
+
+      document.querySelector("#marker").addEventListener("markerLost", () => {
+        menu.style.display = "none";
+        label.style.display = "none";
+        playPauseBtn.style.display = "none";
+        helpBtn.style.display = "none";
+        instructionsPanel.style.display = "none";
+        dinoContainer.innerHTML = "";
+        currentModel = null;
+        currentDinoId = null;
+        isSkeletonMode = false;
+        stopAudio();
+        checkOrientation();
+      });
+
+      function showDino(id) {
+        stopAudio();
+        
+        dinoContainer.innerHTML = "";
+        const model = document.createElement("a-entity");
+        model.setAttribute("position", "0 0 0");
+        model.setAttribute("rotation", "0 90 0");
+        model.setAttribute("animation-mixer", "loop: repeat;");
+        model.classList.add("dino-model");
+
+        currentDinoId = id;
+        isSkeletonMode = false;
+
+        switch (id) {
+          case "dino1":
+            model.setAttribute("gltf-model", "#dino1Model");
+            model.setAttribute("scale", "0.5 0.5 0.5");
+            model.setAttribute("position", "0 0.15 0");
+            label.innerText = "Parasaurolophus\n76-73 million years ago";
+            break;
+          case "dino2":
+            model.setAttribute("gltf-model", "#dino2Model");
+            model.setAttribute("scale", "0.3 0.3 0.3");
+            label.innerText = "Tyrannosaurus Rex\n68-66 million years ago";
+            break;
+          case "dino3":
+            model.setAttribute("gltf-model", "#dino3Model");
+            model.setAttribute("scale", "0.3 0.3 0.3");
+            label.innerText = "Velociraptor\n75-71 million years ago";
+            break;
+          case "dino4":
+            model.setAttribute("gltf-model", "#dino4Model");
+            model.setAttribute("scale", "0.3 0.3 0.3");
+            label.innerText = "Corythosaurus\n77-75 million years ago";
+            break;
+        }
+        currentModel = model;
+        dinoContainer.appendChild(model);
+        
+        playPauseIcon.src = "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(12).png?v=1745175785547";
+        isPlaying = false;
+      }
+
+      function toggleSkeletonMode() {
+        if (!currentModel || !currentDinoId) return;
+
+        currentModel.setAttribute("animation", {
+          property: "scale",
+          to: "0 0 0",
+          dur: 300,
+          easing: "easeInQuad",
+        });
+
+        setTimeout(() => {
+          isSkeletonMode = !isSkeletonMode;
+          const currentRotation = currentModel.getAttribute("rotation");
+          const currentPosition = currentModel.getAttribute("position");
+
+          dinoContainer.innerHTML = "";
+          const newModel = document.createElement("a-entity");
+          newModel.setAttribute("position", currentPosition);
+          newModel.setAttribute("rotation", currentRotation);
+          newModel.setAttribute("animation-mixer", "loop: repeat;");
+          newModel.classList.add("dino-model");
+
+          if (isSkeletonMode) {
+            newModel.setAttribute("scale", "0 0 0");
+            switch (currentDinoId) {
+              case "dino1":
+                newModel.setAttribute("gltf-model", "#dino1Skeleton");
+                break;
+              case "dino2":
+                newModel.setAttribute("gltf-model", "#dino2Skeleton");
+                break;
+              case "dino3":
+                newModel.setAttribute("gltf-model", "#dino3Skeleton");
+                break;
+              case "dino4":
+                newModel.setAttribute("gltf-model", "#dino4Skeleton");
+                break;
+            }
+          } else {
+            newModel.setAttribute("scale", "0 0 0");
+            switch (currentDinoId) {
+              case "dino1":
+                newModel.setAttribute("gltf-model", "#dino1Model");
+                break;
+              case "dino2":
+                newModel.setAttribute("gltf-model", "#dino2Model");
+                break;
+              case "dino3":
+                newModel.setAttribute("gltf-model", "#dino3Model");
+                break;
+              case "dino4":
+                newModel.setAttribute("gltf-model", "#dino4Model");
+                break;
+            }
+          }
+
+          currentModel = newModel;
+          dinoContainer.appendChild(newModel);
+
+          newModel.setAttribute("animation", {
+            property: "scale",
+            to: isSkeletonMode
+              ? "0.2 0.2 0.2"
+              : currentDinoId === "dino1"
+              ? "0.5 0.5 0.5"
+              : "0.3 0.3 0.3",
+            dur: 300,
+            easing: "easeOutQuad",
+          });
+        }, 300);
+      }
+
+      function toggleAudio() {
+        if (!currentDinoId) return;
+        
+        if (isPlaying) {
+          pauseAudio();
+        } else {
+          playAudio();
+        }
+      }
+      
+      function playAudio() {
+        if (!currentDinoId) return;
+        
+        stopAudio();
+        
+        audio = new Audio(dinoAudioUrls[currentDinoId]);
+        audio.play().then(() => {
+          isPlaying = true;
+          playPauseIcon.src = "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(13).png?v=1745175784552";
+          
+          playPauseBtn.style.transform = "translate(-50%, -50%) scale(1.2)";
+          setTimeout(() => {
+            playPauseBtn.style.transform = "translate(-50%, -50%) scale(1)";
+          }, 300);
+          
+          audio.addEventListener("ended", () => {
+            isPlaying = false;
+            playPauseIcon.src = "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(12).png?v=1745175785547";
+          });
+        }).catch(error => {
+          console.error("Error playing audio:", error);
+        });
+      }
+      
+      function pauseAudio() {
+        if (audio && isPlaying) {
+          audio.pause();
+          isPlaying = false;
+          playPauseIcon.src = "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(12).png?v=1745175785547";
+          
+          playPauseBtn.style.transform = "translate(-50%, -50%) scale(1.2)";
+          setTimeout(() => {
+            playPauseBtn.style.transform = "translate(-50%, -50%) scale(1)";
+          }, 300);
+        }
+      }
+      
+      function stopAudio() {
+        if (audio) {
+          audio.pause();
+          audio.currentTime = 0;
+          isPlaying = false;
+          playPauseIcon.src = "https://cdn.glitch.global/f624326b-0c0e-4174-9c05-857684255a9d/Untitled%20design%20(12).png?v=1745175785547";
+        }
+      }
+
+      document.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        previousX = e.clientX;
+      });
+
+      document.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isDragging || !currentModel) return;
+        const dx = e.clientX - previousX;
+        previousX = e.clientX;
+        const rotation = currentModel.getAttribute("rotation");
+        rotation.y += dx * 0.5;
+        currentModel.setAttribute("rotation", rotation);
+      });
+
+      document.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          previousTouchX = e.touches[0].clientX;
+
+          longPressTimer = setTimeout(() => {
+            longPressIndicator.style.display = "none";
+            toggleSkeletonMode();
+          }, 1500);
+
+          longPressIndicator.style.display = "flex";
+          longPressProgress.style.animation = "spin 1.5s linear forwards";
+        }
+      });
+
+      document.addEventListener("touchend", () => {
+        isDragging = false;
+
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+          longPressIndicator.style.display = "none";
+          longPressProgress.style.animation = "none";
+        }
+      });
+
+      document.addEventListener("touchmove", (e) => {
+        if (!currentModel || e.touches.length !== 1) return;
+
+        if (isDragging) {
+          e.preventDefault();
+          const touchX = e.touches[0].clientX;
+          const dx = touchX - previousTouchX;
+          previousTouchX = touchX;
+          const rotation = currentModel.getAttribute("rotation");
+          rotation.y += dx * 0.5;
+          currentModel.setAttribute("rotation", rotation);
+        }
+      });
+
+      let lastTap = 0;
+      document.addEventListener("touchend", (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+          if (currentModel) {
+            const currentScale = currentModel.getAttribute("scale");
+            let newScale;
+            if (isSkeletonMode) {
+              newScale = currentScale.x === 0.2 ? "0.4 0.4 0.4" : "0.2 0.2 0.2";
+            } else {
+              if (currentDinoId === "dino1") {
+                newScale =
+                  currentScale.x === 0.5 ? "1.0 1.0 1.0" : "0.5 0.5 0.5";
+              } else {
+                newScale =
+                  currentScale.x === 0.3 ? "0.6 0.6 0.6" : "0.3 0.3 0.3";
+              }
+            }
+            currentModel.setAttribute("scale", newScale);
+          }
+        }
+        lastTap = currentTime;
+      });
+    </script>
+  </body>
+</html>
