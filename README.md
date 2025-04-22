@@ -1,48 +1,72 @@
-# Hello website!
+WebAR Dinosaur Viewer (Mobile AR Project)
+🦕 A mobile-based Web AR experience where users can view and interact with 3D dinosaur models using their device camera and a custom marker. Built with AR.js and A-Frame, it runs directly in the browser — no app needed.
 
-This is a basic HTML starter project you can build on however you like. No need to save. While you develop your site, your changes will happen ✨ immediately in the preview window. On the left you'll see the files that make up your site, including HTML, JavaScript, and CSS. You can upload assets like images or audio in `assets`. The rest is up to you and your imagination. 🦄
+🔧 Main Features
+Marker-based AR: Uses a .patt marker to place 3D models in real-world space through the camera.
 
-_Last updated: 28 Feb 2023_
+Four dinosaur species available to view and interact with.
 
-## What's in this project?
+Users can rotate, zoom, and switch models easily through touch gestures.
 
-← `README.md`: That's this file, where you can tell people what your cool website does and how you built it.
+Long-press gesture toggles between full model and skeleton view.
 
-← `index.html`: This is the main web page for your site. The HTML defines the structure and content of the page using _elements_. You'll see references in the HTML to the JS and CSS files. Try clicking the image in the center of the page!
+Each dinosaur has an audio narration in a natural male voice.
 
-← `style.css`: CSS files add styling rules to your content. The CSS applies styles to the elements in your HTML page. The style rules also make the image move when you click it.
+Helpful UI includes menu, play/pause button, and help instructions.
 
-← `script.js`: If you're feeling fancy you can add interactivity to your site with JavaScript. The code in the JavaScript file runs when the page loads, and when the visitor clicks the button you can add using the code in the TODO.
+Visual cues and animations guide the user experience.
 
-Open each file and check out the comments (in gray) for more info.
+Optimized for mobile phones in landscape mode.
 
-## Try this next 🏗️
+📱 How to Use It
+Open the web app on your phone (Chrome/Safari recommended).
 
-Take a look in `TODO.md` for next steps you can try out in your new site!
+Allow camera permissions when asked.
 
-___Want a minimal version of this project to build your own website? Check out [Blank Website](https://glitch.com/edit/#!/remix/glitch-blank-website)!___
+Scan the provided AR marker.
 
-## Ready to share your site?
+Once the marker is detected, the dinosaur menu and interface appear.
 
-Add these meta tags for SEO and social sharing between your page `<head></head>` tags, changing the values for your site:
+Tap an image to load the corresponding dinosaur.
 
-```
-<link rel="canonical" href="https://glitch-hello-website.glitch.me/" />
-<meta name="description" content="A simple website, built with Glitch. Remix it to get your own."/>
-<meta name="robots" content="index,follow" />
-<meta property="og:title" content="Hello World!" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://glitch-hello-website.glitch.me/" />
-<meta property="og:description" content="A simple website, built with Glitch. Remix it to get your own."/>
-<meta property="og:image" content="https://cdn.glitch.com/605e2a51-d45f-4d87-a285-9410ad350515%2Fhello-website-social.png?v=1616712748147"/>
-<meta name="twitter:card" content="summary" />
-```
+Use:
 
-![Glitch](https://cdn.glitch.com/a9975ea6-8949-4bab-addb-8a95021dc2da%2FLogo_Color.svg?v=1602781328576)
+Drag = Rotate the dinosaur
 
-## You built this with Glitch!
+Double Tap = Zoom in/out
 
-[Glitch](https://glitch.com) is a friendly community where millions of people come together to build web apps and websites.
+Long Press (1.5s) = Switch between full model and skeleton
 
-- Need more help? [Check out our Help Center](https://help.glitch.com/) for answers to any common questions.
-- Ready to make it official? [Become a paid Glitch member](https://glitch.com/pricing) to boost your app with private sharing, more storage and memory, domains and more.
+Play Button = Play voiceover with dinosaur facts
+
+Use the "?" help button for on-screen instructions.
+
+🦖 Dinosaurs Included
+Each dinosaur has:
+
+A detailed 3D model
+
+A matching skeleton model
+
+Audio narration with historical facts
+
+Species list:
+
+Parasaurolophus
+
+Tyrannosaurus Rex
+
+Velociraptor
+
+Corythosaurus
+
+🛠 Technologies Used
+A-Frame – for 3D scene rendering
+
+AR.js – for marker detection and camera-based AR
+
+HTML + CSS + JS – for layout, interaction, and logic
+
+glTF Models – 3D assets for dinosaurs and ground
+
+Audio – Voiceovers triggered by user input
